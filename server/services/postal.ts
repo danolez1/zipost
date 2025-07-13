@@ -1,4 +1,4 @@
-import { type NewPostalData } from '../db/schema';
+import type { NewPostalData } from '../db/schema';
 import { PostalModel } from '../models/postal';
 
 export interface PostalCodeSearchResult {

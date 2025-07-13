@@ -1,11 +1,13 @@
-import { eq, and, gte, lte, desc, count } from 'drizzle-orm';
+import { eq, and, gte, lte, desc, sql, count } from 'drizzle-orm';
 import { db } from '../db';
-import { logs, type Log, type NewLog } from '../db/schema';
+import type { Log, NewLog } from '../db/schema';
+import { logs } from '../db/schema';
 import { createId } from '@paralleldrive/cuid2';
 
 export interface LogFilters {
   userId?: string;
   endpoint?: string;
+  method?: string;
   statusCode?: number;
   startDate?: Date;
   endDate?: Date;
@@ -13,8 +15,8 @@ export interface LogFilters {
   offset?: number;
 }
 
-export class LogModel {
-  static async create(logData: NewLog): Promise<Log> {
+export const LogModel = {
+  async create(logData: NewLog): Promise<Log> {
     try {
       const logWithId = { ...logData, id: logData.id || createId() };
       await db.insert(logs).values(logWithId);
@@ -24,9 +26,9 @@ export class LogModel {
       console.error('Error creating log:', error);
       throw new Error('Failed to create log');
     }
-  }
+  },
 
-  static async findById(id: string): Promise<Log | null> {
+  async findById(id: string): Promise<Log | null> {
     try {
       const [log] = await db.select().from(logs).where(eq(logs.id, id)).limit(1);
       return log || null;
@@ -34,12 +36,13 @@ export class LogModel {
       console.error('Error finding log by ID:', error);
       throw new Error('Failed to find log');
     }
-  }
+  },
 
-  static async findByFilters(filters: LogFilters = {}): Promise<Log[]> {
+  async findByFilters(filters: LogFilters = {}): Promise<Log[]> {
     const {
       userId,
       endpoint,
+      method,
       statusCode,
       startDate,
       endDate,
@@ -74,9 +77,9 @@ export class LogModel {
       console.error('Error finding logs by filters:', error);
       throw new Error('Failed to find logs');
     }
-  }
+  },
 
-  static async findByUserId(userId: string, limit = 100, offset = 0): Promise<Log[]> {
+  async findByUserId(userId: string, limit = 100, offset = 0): Promise<Log[]> {
     try {
       const results = await db
         .select()
@@ -89,11 +92,11 @@ export class LogModel {
       return results;
     } catch (error) {
       console.error('Error finding logs by user ID:', error);
-      throw new Error('Failed to find logs');
+      throw new Error('Failed to find logs by user ID');
     }
-  }
+  },
 
-  static async findByEndpoint(endpoint: string, limit = 100, offset = 0): Promise<Log[]> {
+  async findByEndpoint(endpoint: string, limit = 100, offset = 0): Promise<Log[]> {
     try {
       const results = await db
         .select()
@@ -106,11 +109,11 @@ export class LogModel {
       return results;
     } catch (error) {
       console.error('Error finding logs by endpoint:', error);
-      throw new Error('Failed to find logs');
+      throw new Error('Failed to find logs by endpoint');
     }
-  }
+  },
 
-  static async getCount(filters: Omit<LogFilters, 'limit' | 'offset'> = {}): Promise<number> {
+  async getCount(filters: Omit<LogFilters, 'limit' | 'offset'> = {}): Promise<number> {
     const {
       userId,
       endpoint,
@@ -138,9 +141,9 @@ export class LogModel {
       console.error('Error getting log count:', error);
       throw new Error('Failed to get log count');
     }
-  }
+  },
 
-  static async deleteOlderThan(cutoffDate: Date): Promise<number> {
+  async deleteOlderThan(cutoffDate: Date): Promise<number> {
     try {
       const result = await db
         .delete(logs)
@@ -150,9 +153,9 @@ export class LogModel {
       console.error('Error deleting old logs:', error);
       throw new Error('Failed to delete old logs');
     }
-  }
+  },
 
-  static async delete(id: string): Promise<boolean> {
+  async delete(id: string): Promise<boolean> {
     try {
       const result = await db.delete(logs).where(eq(logs.id, id)) as any;
       return result.affectedRows > 0;
@@ -160,19 +163,19 @@ export class LogModel {
       console.error('Error deleting log:', error);
       throw new Error('Failed to delete log');
     }
-  }
+  },
 
-  static async deleteByUserId(userId: string): Promise<number> {
+  async deleteByUserId(userId: string): Promise<number> {
     try {
       const result = await db.delete(logs).where(eq(logs.userId, userId)) as any;
       return result.affectedRows;
     } catch (error) {
       console.error('Error deleting logs by user ID:', error);
-      throw new Error('Failed to delete logs');
+      throw new Error('Failed to delete logs by user ID');
     }
-  }
+  },
 
-  static async getErrorCount(filters: Omit<LogFilters, 'limit' | 'offset'> = {}): Promise<number> {
+  async getErrorCount(filters: Omit<LogFilters, 'limit' | 'offset'> = {}): Promise<number> {
     const {
       userId,
       endpoint,
@@ -196,9 +199,9 @@ export class LogModel {
       console.error('Error getting error count:', error);
       throw new Error('Failed to get error count');
     }
-  }
+  },
 
-  static async getAnalytics(filters: Omit<LogFilters, 'limit' | 'offset'> = {}): Promise<any> {
+  async getAnalytics(filters: Omit<LogFilters, 'limit' | 'offset'> = {}): Promise<any> {
     const {
       userId,
       endpoint,
@@ -228,9 +231,9 @@ export class LogModel {
       console.error('Error getting analytics:', error);
       throw new Error('Failed to get analytics');
     }
-  }
+  },
 
-  static async getTopEndpoints(limit = 10, days = 7): Promise<any[]> {
+  async getTopEndpoints(limit = 10, days = 7): Promise<any[]> {
     try {
       const cutoffDate = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
       
@@ -250,5 +253,5 @@ export class LogModel {
       console.error('Error getting top endpoints:', error);
       throw new Error('Failed to get top endpoints');
     }
-  }
-}
+  },
+};

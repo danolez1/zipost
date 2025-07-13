@@ -1,0 +1,88 @@
+name: Deploy
+
+on:
+  push:
+   branches: ['main']
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    # - name: Setup bun
+    #   uses: oven-sh/setup-bun@v2
+    #   with:
+    #     bun-version: latest
+
+    - name: Deploy to VPS
+      uses: appleboy/ssh-action@v1.2.0
+      with:
+        host: '${{ secrets.DO_HOST }}'
+        key: '${{ secrets.DO_SSH_RSA }}'
+        username: root
+        script: |
+          export NVM_DIR=~/.nvm
+          source ~/.nvm/nvm.sh
+          export PATH="$HOME/.bun/bin:$PATH"
+          # Check if git is installed and install if not
+          # which git || sudo apt-get install git -y
+          # apt install curl
+          # curl https://raw.githubusercontent.com/creationix/nvm/master/install.sh | bash
+          # source ~/.bashrc
+          # apt-get install nodejs -y
+          # curl -fsSL https://bun.sh/install | bash
+          # source /root/.bashrc
+
+          # bun --help
+          # ~/.bun/bin/bun --version
+
+          # Change directory to public
+          cd /var/www/html
+
+          # Check if dir "zipost" is present and if not create dir
+          if [ ! -d "zipost" ]; then
+            mkdir zipost
+          fi
+
+          # Change directory to zipost
+          cd zipost
+
+          # Initialize git and add remote origin
+          if [ ! -d ".git" ]; then
+            git init
+          fi
+
+          # Check if remote origin already exists
+          if ! git remote | grep -q "origin"; then
+            git remote add origin https://"${{secrets.CR_PAT}}"@github.com/danolez1/zipost
+          fi
+
+          git stash
+
+          # Pull main branch
+          git fetch
+          git checkout main
+          git pull origin main
+
+          # nvm install --lts
+          # nvm use --lts
+
+          rm -Rf node_modules
+          rm -Rf .next
+
+          ~/.bun/bin/bun install
+          # ~/.bun/bin/bunx update-browserslist-db@latest
+
+          ~/.bun/bin/bun run build
+          # ~/.bun/bin/bun run test
+          # ~/.bun/bin/bun i -g pm2
+
+          if ~/.bun/bin/pm2 list | grep -q "zipost"; then
+            ~/.bun/bin/pm2 stop zipost
+            ~/.bun/bin/pm2 delete zipost
+          fi
+          ~/.bun/bin/pm2 start ~/.bun/bin/bun --name "zipost" -- run start -- -p 8000
+          ~/.bun/bin/pm2 save
+
+
+

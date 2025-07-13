@@ -1,5 +1,5 @@
 import { LogModel } from '../models/log';
-import { type NewLog, type Log } from '../db/schema';
+import type { NewLog, Log } from '../db/schema';
 
 export interface LogEntry {
   userId: string;
@@ -117,7 +117,7 @@ export class LoggingService {
 
   static async cleanupOldLogs(daysToKeep = 90): Promise<number> {
     const cutoffDate = new Date(Date.now() - (daysToKeep * 24 * 60 * 60 * 1000));
-    
+
     try {
       return await LogModel.deleteOlderThan(cutoffDate);
     } catch (error) {

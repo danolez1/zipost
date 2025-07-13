@@ -1,6 +1,7 @@
 import { eq, like, or, and, count, sql } from 'drizzle-orm';
 import { db } from '../db';
-import { postalData, type PostalData, type NewPostalData } from '../db/schema';
+import type { PostalData, NewPostalData } from '../db/schema';
+import { postalData } from '../db/schema';
 
 export interface PostalSearchOptions {
   limit?: number;

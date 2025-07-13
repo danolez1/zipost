@@ -32,7 +32,8 @@ export default createConfigForNuxt({
                 '@typescript-eslint/no-unused-vars': 'off',
                 'no-unused-vars': 'off',
                 'vue/no-multiple-template-root': 'off',
-                'vue/require-default-prop': 'off'
+                'vue/require-default-prop': 'off',
+                '@typescript-eslint/no-extraneous-class': 'off'
             }
 
         }

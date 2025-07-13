@@ -1,7 +1,8 @@
-import { RateLimitModel } from '../models/rateLimit';
-import { users, type User, type NewRateLimit } from '../db/schema';
-import { db } from '../db';
 import { eq } from 'drizzle-orm';
+import { db } from '../db';
+import type { NewRateLimit } from '../db/schema';
+import { users } from '../db/schema';
+import { RateLimitModel } from '../models/rateLimit';
 
 export interface RateLimitConfig {
   free: {
@@ -50,7 +51,7 @@ export class RateLimitService {
 
     const config = RATE_LIMIT_CONFIG[user.subscriptionPlan as keyof RateLimitConfig];
     const limit = windowType === 'minute' ? config.requestsPerMinute : config.requestsPerDay;
-    
+
     // For pro plan with unlimited requests
     if (limit === Infinity) {
       return {
@@ -76,7 +77,7 @@ export class RateLimitService {
         windowStart,
         windowType,
       };
-      
+
       rateLimit = await RateLimitModel.create(newRateLimit);
     }
 
@@ -94,7 +95,7 @@ export class RateLimitService {
 
   static async incrementCounter(userId: string, windowType: 'minute' | 'day'): Promise<void> {
     const windowStart = this.getWindowStart(new Date(), windowType);
-    
+
     // Try to find existing record
     const existingRecord = await RateLimitModel.findByUserAndWindow(userId, windowType, windowStart);
 
@@ -109,7 +110,7 @@ export class RateLimitService {
         windowStart,
         windowType,
       };
-      
+
       await RateLimitModel.create(newRateLimit);
     }
   }
@@ -143,11 +144,11 @@ export class RateLimitService {
 
   static async cleanupExpiredRecords(): Promise<void> {
     const oneDayAgo = new Date(Date.now() - 86400000); // 24 hours ago
-    
+
     await RateLimitModel.deleteExpiredMinuteRecords(oneDayAgo);
 
     const oneWeekAgo = new Date(Date.now() - 604800000); // 7 days ago
-    
+
     await RateLimitModel.deleteExpiredDayRecords(oneWeekAgo);
   }
 

@@ -92,7 +92,7 @@ export default defineEventHandler(async (event) => {
     
     return {
       success: false,
-      message: error.message || 'Failed to generate API key'
+      message: error instanceof Error ? error.message : 'Failed to generate API key'
     };
   }
 });

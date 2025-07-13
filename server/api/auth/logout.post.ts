@@ -66,7 +66,7 @@ export default defineEventHandler(async (event) => {
     setResponseStatus(event, statusCode);
     return {
       success: false,
-      message: error.message || 'Logout failed'
+      message: error instanceof Error ? error.message : 'Logout failed'
     };
   }
 });

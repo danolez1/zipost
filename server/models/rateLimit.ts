@@ -1,6 +1,7 @@
 import { eq, and, gte, lt } from 'drizzle-orm';
 import { db } from '../db';
-import { rateLimits, type RateLimit, type NewRateLimit } from '../db/schema';
+import type { RateLimit, NewRateLimit } from '../db/schema';
+import { rateLimits } from '../db/schema';
 
 export class RateLimitModel {
   static async findById(id: string): Promise<RateLimit | null> {

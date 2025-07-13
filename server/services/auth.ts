@@ -2,7 +2,7 @@ import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import { UserModel } from '../models/user';
 import { ApiKeyModel } from '../models/apiKey';
-import { type User, type NewUser } from '../db/schema';
+import type { User, NewUser } from '../db/schema';
 import { createId } from '@paralleldrive/cuid2';
 
 const JWT_SECRET: string = process.env.JWT_SECRET || 'fallback-secret-key';

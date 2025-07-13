@@ -1,8 +1,7 @@
+import { assertMethod, defineEventHandler, getHeader, getRequestIP, readBody, setResponseStatus } from 'h3';
 import { z } from 'zod';
-import { defineEventHandler, assertMethod, readBody, getHeader, setResponseStatus, getRequestIP } from 'h3';
 import { AuthService } from '../../services/auth';
 import { LoggingService } from '../../services/logging';
-import { RateLimitService } from '../../services/rateLimit';
 
 const registerSchema = z.object({
   email: z.string().email('Invalid email format'),
@@ -12,21 +11,21 @@ const registerSchema = z.object({
 export default defineEventHandler(async (event) => {
   const startTime = Date.now();
   let userId: string | undefined;
-  let statusCode = 201;
-  
+  const statusCode = 201;
+
   try {
     // Only allow POST method
     assertMethod(event, 'POST');
-    
+
     // Parse and validate request body
     const body = await readBody(event);
     const { email, password } = registerSchema.parse(body);
 
     // Attempt registration
     const result = await AuthService.register(email, password);
-    
+
     userId = result.user.id;
-    
+
     // Log successful registration
     await LoggingService.log({
       userId: result.user.id,
@@ -50,10 +49,10 @@ export default defineEventHandler(async (event) => {
         createdAt: result.user.createdAt
       }
     };
-    
+
   } catch (error: any) {
     console.error('Registration error:', error);
-    
+
     // Log failed registration attempt
     await LoggingService.log({
       userId,
@@ -66,7 +65,7 @@ export default defineEventHandler(async (event) => {
     });
 
     setResponseStatus(event, statusCode);
-    
+
     if (error instanceof z.ZodError) {
       return {
         success: false,

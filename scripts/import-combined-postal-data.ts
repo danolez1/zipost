@@ -63,7 +63,7 @@ async function parseJapaneseCSV(): Promise<Map<string, JapanesePostalRecord>> {
 
     parser.on('readable', function() {
       let record;
-      while (record = parser.read()) {
+      while ((record = parser.read()) !== null) {
         const postalCode = record[2]?.replace(/"/g, '');
         if (postalCode) {
           records.set(postalCode, {
@@ -101,7 +101,7 @@ async function parseEnglishCSV(): Promise<Map<string, EnglishPostalRecord>> {
 
     parser.on('readable', function() {
       let record;
-      while (record = parser.read()) {
+      while ((record = parser.read()) !== null) {
         const postalCode = record[0]?.replace(/"/g, '');
         if (postalCode) {
           records.set(postalCode, {

@@ -1,8 +1,14 @@
 import { eq } from 'drizzle-orm';
 import { db } from '../db';
-import { users, type User, type NewUser } from '../db/schema';
+import type { User, NewUser } from '../db/schema';
+import { users } from '../db/schema';
 
 export class UserModel {
+
+  constructor() {
+    console.log('')
+  }
+
   static async findById(id: string): Promise<User | null> {
     try {
       const [user] = await db.select().from(users).where(eq(users.id, id)).limit(1);
@@ -41,7 +47,7 @@ export class UserModel {
         .update(users)
         .set({ ...updates, updatedAt: new Date() })
         .where(eq(users.id, id));
-      
+
       // Fetch the updated user
       const [updatedUser] = await db.select().from(users).where(eq(users.id, id)).limit(1);
       return updatedUser || null;
