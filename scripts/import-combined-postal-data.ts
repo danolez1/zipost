@@ -84,7 +84,7 @@ async function parseJapaneseCSV(): Promise<Map<string, JapanesePostalRecord>> {
     parser.on('error', reject);
     parser.on('end', () => resolve(records));
 
-    createReadStream('/Users/tunmisetunes/Work/beckon/zipost/utf_ken_all.csv').pipe(parser);
+    createReadStream('./utf_ken_all.csv').pipe(parser);
   });
 }
 
@@ -120,7 +120,7 @@ async function parseEnglishCSV(): Promise<Map<string, EnglishPostalRecord>> {
     parser.on('error', reject);
     parser.on('end', () => resolve(records));
 
-    createReadStream('/Users/tunmisetunes/Work/beckon/zipost/KEN_ALL_ROME.CSV').pipe(parser);
+    createReadStream('./KEN_ALL_ROME.CSV').pipe(parser);
   });
 }
 

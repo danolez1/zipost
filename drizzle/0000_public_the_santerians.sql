@@ -1,7 +1,7 @@
 CREATE TABLE `api_keys` (
 	`id` varchar(128) NOT NULL,
 	`user_id` varchar(128) NOT NULL,
-	`key_hash` text NOT NULL,
+	`key_hash` varchar(255) NOT NULL,
 	`name` varchar(255) NOT NULL,
 	`is_active` boolean NOT NULL DEFAULT true,
 	`created_at` timestamp NOT NULL DEFAULT (now()),

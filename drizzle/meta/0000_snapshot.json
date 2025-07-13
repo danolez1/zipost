@@ -1,7 +1,7 @@
 {
   "version": "5",
   "dialect": "mysql",
-  "id": "6deb295c-9977-4750-86e8-8442c6885b82",
+  "id": "9271f774-59ad-4292-a8f7-8a37b16d63bd",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "api_keys": {
@@ -23,7 +23,7 @@
         },
         "key_hash": {
           "name": "key_hash",
-          "type": "text",
+          "type": "varchar(255)",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
