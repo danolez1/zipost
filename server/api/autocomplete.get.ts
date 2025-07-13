@@ -15,7 +15,7 @@ const querySchema = z.object({
 export default defineEventHandler(async (event) => {
   const startTime = Date.now();
   let statusCode = 200;
-  let userId = 'anonymous';
+  // let userId = 'anonymous';
   
   try {
     // Only allow GET method
@@ -29,118 +29,125 @@ export default defineEventHandler(async (event) => {
     const authHeader = getHeader(event, 'authorization');
     const apiKey = getHeader(event, 'x-api-key');
     
-    let user = null;
-    
-    if (authHeader && authHeader.startsWith('Bearer ')) {
-      // JWT authentication
-      const token = authHeader.substring(7);
-      const verifyResult = await AuthService.verifyToken(token);
-      
-      if (!verifyResult || !verifyResult.userId) {
-        statusCode = 401;
-        throw new Error('Invalid or expired token');
-      }
-      
-      user = { id: verifyResult.userId };
-    } else if (apiKey) {
-      // API key authentication
-      const verifyResult = await AuthService.verifyApiKey(apiKey);
-      
-      if (!verifyResult) {
-        statusCode = 401;
-        throw new Error('Invalid API key');
-      }
-      
-      user = verifyResult;
-    } else {
-      statusCode = 401;
-      throw new Error('Authentication required');
-    }
-    
-    userId = user.id;
-    
-    // Check rate limits
-    const rateLimitResult = await RateLimitService.checkAndIncrementRateLimit(userId);
-    
-    if (!rateLimitResult.allowed) {
-      statusCode = 429;
-      
-      // Set rate limit headers
-      setHeader(event, 'X-RateLimit-Limit-Minute', rateLimitResult.minuteLimit.limit.toString());
-      setHeader(event, 'X-RateLimit-Remaining-Minute', rateLimitResult.minuteLimit.remaining.toString());
-      setHeader(event, 'X-RateLimit-Reset-Minute', rateLimitResult.minuteLimit.resetTime.toISOString());
-      setHeader(event, 'X-RateLimit-Limit-Day', rateLimitResult.dayLimit.limit.toString());
-      setHeader(event, 'X-RateLimit-Remaining-Day', rateLimitResult.dayLimit.remaining.toString());
-      setHeader(event, 'X-RateLimit-Reset-Day', rateLimitResult.dayLimit.resetTime.toISOString());
-      
-      throw new Error('Rate limit exceeded');
-    }
-    
-    // Set rate limit headers for successful requests
-    setHeader(event, 'X-RateLimit-Limit-Minute', rateLimitResult.minuteLimit.limit.toString());
-    setHeader(event, 'X-RateLimit-Remaining-Minute', (rateLimitResult.minuteLimit.remaining - 1).toString());
-    setHeader(event, 'X-RateLimit-Reset-Minute', rateLimitResult.minuteLimit.resetTime.toISOString());
-    setHeader(event, 'X-RateLimit-Limit-Day', rateLimitResult.dayLimit.limit.toString());
-    setHeader(event, 'X-RateLimit-Remaining-Day', (rateLimitResult.dayLimit.remaining - 1).toString());
-    setHeader(event, 'X-RateLimit-Reset-Day', rateLimitResult.dayLimit.resetTime.toISOString());
-    
-    // Perform postal code search
-    const results = await PostalService.autocomplete(q, {
+    // let user = null;
+
+     const results = await PostalService.autocomplete(q, {
       limit: Math.min(limit, 50), // Cap at 50 results
       countryCode: country,
       language,
     });
+    return results;
+    
+    // if (authHeader && authHeader.startsWith('Bearer ')) {
+    //   // JWT authentication
+    //   const token = authHeader.substring(7);
+    //   const verifyResult = await AuthService.verifyToken(token);
+      
+    //   if (!verifyResult || !verifyResult.userId) {
+    //     statusCode = 401;
+    //     throw new Error('Invalid or expired token');
+    //   }
+      
+    //   user = { id: verifyResult.userId };
+    // } else if (apiKey) {
+    //   // API key authentication
+    //   const verifyResult = await AuthService.verifyApiKey(apiKey);
+      
+    //   if (!verifyResult) {
+    //     statusCode = 401;
+    //     throw new Error('Invalid API key');
+    //   }
+      
+    //   user = verifyResult;
+    // } else {
+    //   statusCode = 401;
+    //   throw new Error('Authentication required');
+    // }
+    
+    // userId = user.id;
+    
+    // // Check rate limits
+    // const rateLimitResult = await RateLimitService.checkAndIncrementRateLimit(userId);
+    
+    // if (!rateLimitResult.allowed) {
+    //   statusCode = 429;
+      
+    //   // Set rate limit headers
+    //   setHeader(event, 'X-RateLimit-Limit-Minute', rateLimitResult.minuteLimit.limit.toString());
+    //   setHeader(event, 'X-RateLimit-Remaining-Minute', rateLimitResult.minuteLimit.remaining.toString());
+    //   setHeader(event, 'X-RateLimit-Reset-Minute', rateLimitResult.minuteLimit.resetTime.toISOString());
+    //   setHeader(event, 'X-RateLimit-Limit-Day', rateLimitResult.dayLimit.limit.toString());
+    //   setHeader(event, 'X-RateLimit-Remaining-Day', rateLimitResult.dayLimit.remaining.toString());
+    //   setHeader(event, 'X-RateLimit-Reset-Day', rateLimitResult.dayLimit.resetTime.toISOString());
+      
+    //   throw new Error('Rate limit exceeded');
+    // }
+    
+    // // Set rate limit headers for successful requests
+    // setHeader(event, 'X-RateLimit-Limit-Minute', rateLimitResult.minuteLimit.limit.toString());
+    // setHeader(event, 'X-RateLimit-Remaining-Minute', (rateLimitResult.minuteLimit.remaining - 1).toString());
+    // setHeader(event, 'X-RateLimit-Reset-Minute', rateLimitResult.minuteLimit.resetTime.toISOString());
+    // setHeader(event, 'X-RateLimit-Limit-Day', rateLimitResult.dayLimit.limit.toString());
+    // setHeader(event, 'X-RateLimit-Remaining-Day', (rateLimitResult.dayLimit.remaining - 1).toString());
+    // setHeader(event, 'X-RateLimit-Reset-Day', rateLimitResult.dayLimit.resetTime.toISOString());
+    
+    // Perform postal code search
+    // const results = await PostalService.autocomplete(q, {
+    //   limit: Math.min(limit, 50), // Cap at 50 results
+    //   countryCode: country,
+    //   language,
+    // });
     
     // Log the request
-    await LoggingService.log({
-      userId,
-      endpoint: '/api/autocomplete',
-      method: 'GET',
-      statusCode,
-      responseTime: Date.now() - startTime,
-      userAgent: getHeader(event, 'user-agent') || '',
-      ipAddress: getRequestIP(event, { xForwardedFor: true }) || ''
-    });
+    // await LoggingService.log({
+    //   userId,
+    //   endpoint: '/api/autocomplete',
+    //   method: 'GET',
+    //   statusCode,
+    //   responseTime: Date.now() - startTime,
+    //   userAgent: getHeader(event, 'user-agent') || '',
+    //   ipAddress: getRequestIP(event, { xForwardedFor: true }) || ''
+    // });
     
-    return {
-      success: true,
-      data: {
-        query: q,
-        results,
-        count: results.length,
-        country,
-        language,
-      },
-      meta: {
-        rateLimit: {
-          minute: {
-            limit: rateLimitResult.minuteLimit.limit,
-            remaining: rateLimitResult.minuteLimit.remaining - 1,
-            reset: rateLimitResult.minuteLimit.resetTime,
-          },
-          day: {
-            limit: rateLimitResult.dayLimit.limit,
-            remaining: rateLimitResult.dayLimit.remaining - 1,
-            reset: rateLimitResult.dayLimit.resetTime,
-          },
-        },
-      },
-    };
+    // return {
+    //   success: true,
+    //   data: {
+    //     query: q,
+    //     results,
+    //     count: results.length,
+    //     country,
+    //     language,
+    //   },
+    //   meta: {
+    //     rateLimit: {
+    //       minute: {
+    //         limit: rateLimitResult.minuteLimit.limit,
+    //         remaining: rateLimitResult.minuteLimit.remaining - 1,
+    //         reset: rateLimitResult.minuteLimit.resetTime,
+    //       },
+    //       day: {
+    //         limit: rateLimitResult.dayLimit.limit,
+    //         remaining: rateLimitResult.dayLimit.remaining - 1,
+    //         reset: rateLimitResult.dayLimit.resetTime,
+    //       },
+    //     },
+    //   },
+    // };
   } catch (error: unknown) {
     if (statusCode === 200) {
       statusCode = 500;
     }
     
     // Log the error
-    await LoggingService.log({
-      userId,
-      endpoint: '/api/autocomplete',
-      method: 'GET',
-      statusCode,
-      responseTime: Date.now() - startTime,
-      userAgent: getHeader(event, 'user-agent') || '',
-      ipAddress: getRequestIP(event, { xForwardedFor: true }) || ''
-    });
+    // await LoggingService.log({
+    //   userId,
+    //   endpoint: '/api/autocomplete',
+    //   method: 'GET',
+    //   statusCode,
+    //   responseTime: Date.now() - startTime,
+    //   userAgent: getHeader(event, 'user-agent') || '',
+    //   ipAddress: getRequestIP(event, { xForwardedFor: true }) || ''
+    // });
     
     setResponseStatus(event, statusCode);
     

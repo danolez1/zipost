@@ -28,6 +28,10 @@ export class PostalService {
       return [];
     }
 
+    if(query.includes('-')) {
+      query = query.replace('-', '');
+    }
+
     try {
       const results = await PostalModel.search(query, { limit, countryCode });
       return results.map(result => {
