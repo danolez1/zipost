@@ -81,7 +81,7 @@ jobs:
             ~/.bun/bin/pm2 stop zipost
             ~/.bun/bin/pm2 delete zipost
           fi
-          ~/.bun/bin/pm2 start ~/.bun/bin/bun --name "zipost" -- run start -- -p 8001
+          ~/.bun/bin/pm2 start ~/.bun/bin/bun --name "zipost" -- run preview -- -p 8001
           ~/.bun/bin/pm2 save
 
 
