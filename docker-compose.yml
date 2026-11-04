@@ -22,7 +22,8 @@ services:
       - PORT=${PORT}
     ports:
       - "${PORT}:${PORT}"
-    command: /bin/sh -c "bun install && bun x drizzle-kit push && bun run build && bun run preview -- --port ${PORT} --host ${NUXT_HOST}"
+    # nuxt preview reads the host value as the project dir and exits, so run the built server directly.
+    command: /bin/sh -c "bun install && bun x drizzle-kit push && bun run build && HOST=${NUXT_HOST} bun .output/server/index.mjs"
     depends_on:
       db:
         condition: service_healthy
